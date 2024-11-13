@@ -148,25 +148,13 @@ pytest test/test_music.py
 ## API Documentation
 
 ### Weather Endpoints
-- `GET /weather?city={city_name}` - Get current weather
-- `GET /forecast?city={city_name}` - Get 5-day forecast
+- `weather/weather?city={city_name}` - Get current weather
+- `weather/forecast?city={city_name}` - Get 5-day forecast
 
 ### News Endpoints
-- `GET /news?country={country_code}&category={category}` - Get news headlines
-- `GET /categories` - List available news categories
+- `news/news?country={country_code}&category={category}` - Get news headlines
+- `news/categories` - List available news categories
 
 ### Music Endpoints
-- `GET /search?q={query}` - Search for tracks
-- `GET /play` - Play selected track (requires authentication)
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- `music/search?q={query}` - Search for tracks
+- `music/play` - Play selected track (requires authentication)
