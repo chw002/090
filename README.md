@@ -48,8 +48,8 @@ graph TB
     Gateway --> News
     Gateway --> Music
     
-    Weather ---|Current Weather& Forecast| OpenWeather
-    News ---|Headlines& Categories| GNews
+    Weather ---|Current Weather & Forecast| OpenWeather
+    News ---|Headlines & Categories| GNews
     Music ---|Search & PlaybackOAuth2 Auth| Spotify
     
     %% Apply styles
