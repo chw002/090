@@ -5,36 +5,63 @@ A Flask-based microservices backend that integrates weather, news, and music ser
 ## Architecture
 
 ```mermaid
-flowchart TB
-    classDef external fill:#f9f9f9,stroke:#ddd,stroke-width:2px
-    classDef service fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
-    classDef main fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
-    classDef api fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+graph TB
+    %% Style definitions with higher contrast
+    classDef external fill:#6741d9,stroke:#5933c6,stroke-width:2px,color:#fff
+    classDef service fill:#0d6efd,stroke:#0a58ca,stroke-width:2px,color:#fff
+    classDef main fill:#198754,stroke:#146c43,stroke-width:2px,color:#fff
+    classDef api fill:#dc3545,stroke:#b02a37,stroke-width:2px,color:#fff
 
-    Client[/"Client Applications"/]:::external
+    %% Client node with new visual style
+    Client(["🖥️ Client Applications"])
     
-    subgraph MainApp["Main Application (Flask)"]:::main
-        Gateway["API Gateway\n(DispatcherMiddleware)"]
-        
-        subgraph Services["Microservices"]
-            Weather["Weather Service\n/weather"]:::service
-            News["News Service\n/news"]:::service
-            Music["Music Service\n/music"]:::service
+    %% Main Application components
+    Gateway["API Gateway(DispatcherMiddleware)"]
+    Weather["Weather Service/weather"]
+    News["News Service/news"]
+    Music["Music Service/music"]
+    
+    %% External APIs
+    OpenWeather["OpenWeatherMap API(Weather Data)"]
+    GNews["GNews API(News Feed)"]
+    Spotify["Spotify API(Music Streaming)"]
+    
+    %% Subgraphs with darker borders
+    subgraph MainApp[" Main Application (Flask) "]
+        Gateway
+        subgraph Services[" Microservices "]
+            Weather
+            News
+            Music
         end
     end
     
-    subgraph ExternalAPIs["External APIs"]:::external
-        OpenWeather["OpenWeatherMap API\n(Weather Data)"]:::api
-        GNews["GNews API\n(News Feed)"]:::api
-        Spotify["Spotify API\n(Music Streaming)"]:::api
+    subgraph ExternalAPIs[" External APIs "]
+        OpenWeather
+        GNews
+        Spotify
     end
-
-    Client --> Gateway
-    Gateway --> Weather & News & Music
     
-    Weather -- "Current Weather\n& Forecast" --> OpenWeather
-    News -- "Headlines\n& Categories" --> GNews
-    Music -- "Search & Playback\nOAuth2 Auth" --> Spotify
+    %% Connections with improved labels
+    Client ---> Gateway
+    Gateway --> Weather
+    Gateway --> News
+    Gateway --> Music
+    
+    Weather ---|Current Weather& Forecast| OpenWeather
+    News ---|Headlines& Categories| GNews
+    Music ---|Search & PlaybackOAuth2 Auth| Spotify
+    
+    %% Apply styles
+    class Client external
+    class Weather,News,Music service
+    class MainApp main
+    class OpenWeather,GNews,Spotify api
+
+    %% Override subgraph styles
+    style MainApp fill:#198754,stroke:#146c43,stroke-width:2px,color:#fff
+    style Services fill:#0d6efd,stroke:#0a58ca,stroke-width:2px,color:#fff
+    style ExternalAPIs fill:#f8f9fa,stroke:#343a40,stroke-width:2px,color:#000
 ```
 
 ## Features
