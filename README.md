@@ -86,22 +86,12 @@ graph TB
 
 ## Setup
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/aiweatherart-backend.git
-cd aiweatherart-backend
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 python setup.py
 ```
 
-3. Configure environment variables:
-   - Copy `.env.example` to `.env`
-   - Add your API keys (see API Requirements section)
-
-4. Run the application:
+2. Run the application:
 - Windows: `run.bat`
 - Unix/Linux: `./run.sh`
 
