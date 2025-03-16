@@ -20,15 +20,18 @@ The project uses the International Skin Imaging Collaboration (ISIC) 2020 Challe
 - Wandb integration for experiment tracking (optional)
 
 ## Installation
-
+Clone the repository
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/skin-lesion-classification.git
-cd skin-lesion-classification
 ```
 ```bash
-# Install dependencies
+cd skin-lesion-classification
+```
+Install dependencies
+```bash
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
+```bash
 pip install monai[all] pytorch-lightning wandb segmentation-models-pytorch opencv-python pandas matplotlib
 ```
 
