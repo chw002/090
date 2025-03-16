@@ -6,7 +6,7 @@ This project provides a comprehensive framework for comparing different convolut
 
 ## Dataset
 
-The project uses the International Skin Imaging Collaboration (ISIC) 2020 Challenge dataset, which contains over 33,000 dermoscopic images of skin lesions with binary classification (benign/malignant). The dataset presents significant class imbalance (approximately 1.76% positive samples), making it a challenging but realistic medical image classification task.
+The project uses the International Skin Imaging Collaboration (ISIC) 2020 Challenge dataset, which contains over 33,000 dermoscopic images of skin lesions with binary classification (benign/malignant). The dataset presents significant class imbalance (approximately 1.76% positive samples), which is a challenging but realistic medical image classification task.
 
 ## Features
 
@@ -65,6 +65,7 @@ isic_cnn_comparison/
 
 ## Data Preparation
 1.Download the [ISIC 2020 Challenge Dataset Official Website](https://challenge2020.isic-archive.com)
+
 2.Extract and organize the images into the following structure:
 
 ```bash
