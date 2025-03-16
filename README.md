@@ -25,13 +25,15 @@ The project uses the International Skin Imaging Collaboration (ISIC) 2020 Challe
 # Clone the repository
 git clone https://github.com/yourusername/skin-lesion-classification.git
 cd skin-lesion-classification
-
+```
+```bash
 # Install dependencies
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install monai[all] pytorch-lightning wandb segmentation-models-pytorch opencv-python pandas matplotlib
 ```
 
 ## Project Structure
+```bash
 isic_cnn_comparison/
 ├── config.py           # Configuration parameters
 ├── data_utils.py       # Data loading and preprocessing
@@ -40,3 +42,4 @@ isic_cnn_comparison/
 ├── evaluate.py         # Evaluation metrics and inference
 ├── visualize.py        # Results visualization
 └── main.py             # Main execution script
+```
