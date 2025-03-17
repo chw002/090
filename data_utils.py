@@ -10,22 +10,27 @@ from sklearn.model_selection import train_test_split
 import config
 
 class ISIC2020Dataset(Dataset):
-    """ISIC 2020皮肤病变图像数据集"""
+    """ISIC 2020 skin lesion image dataset"""
     
-    def __init__(self, csv_file, img_dir, transform=None, is_test=False):
+    def __init__(self, data_source, img_dir, transform=None, is_test=False):
         """
-        参数:
-            csv_file (str): 包含图像信息的CSV文件路径
-            img_dir (str): 图像目录路径
-            transform (callable, optional): 应用于图像的转换
-            is_test (bool): 是否为测试集
+        Parameters:
+            data_source: CSV file path or Pandas DataFrame
+            img_dir: Image directory path
+            transform: Transformations to apply to images
+            is_test: Whether this is a test set
         """
-        self.data_frame = pd.read_csv(csv_file)
+        # Check input type and load data accordingly
+        if isinstance(data_source, str):
+            self.data_frame = pd.read_csv(data_source)
+        else:
+            self.data_frame = data_source  # Directly use the provided DataFrame
+            
         self.img_dir = img_dir
         self.transform = transform
         self.is_test = is_test
         
-        # 读取重复图像列表
+        # Read duplicate images list
         if os.path.exists(config.DUPLICATES_CSV):
             self.duplicates_df = pd.read_csv(config.DUPLICATES_CSV)
             self.duplicate_images = set(self.duplicates_df['image_name_1']).union(
@@ -33,11 +38,11 @@ class ISIC2020Dataset(Dataset):
         else:
             self.duplicate_images = set()
             
-        # 移除重复图像
+        # Remove duplicate images
         if not is_test:
             self.data_frame = self.data_frame[~self.data_frame['image_name'].isin(self.duplicate_images)]
             
-        # 标准化列名 (train.csv和test.csv有不同的列名)
+        # Standardize column names (train.csv and test.csv have different column names)
         if 'image_name' in self.data_frame.columns:
             self.img_col = 'image_name'
         else:
@@ -50,19 +55,19 @@ class ISIC2020Dataset(Dataset):
         img_name = self.data_frame.iloc[idx][self.img_col]
         img_path = os.path.join(self.img_dir, img_name + '.jpg')
         
-        # 读取图像
+        # Read image
         try:
             image = Image.open(img_path).convert('RGB')
         except:
-            # 如果无法读取图像，返回一个黑色图像
-            print(f"无法读取图像: {img_path}")
+            # If image cannot be read, return a black image
+            print(f"Cannot read image: {img_path}")
             image = Image.new('RGB', (config.IMAGE_SIZE, config.IMAGE_SIZE), (0, 0, 0))
         
-        # 应用变换
+        # Apply transformations
         if self.transform:
             image = self.transform(image)
             
-        # 获取标签 (如果是训练集)
+        # Get label (if training set)
         if not self.is_test:
             label = self.data_frame.iloc[idx]['target']
             return image, label
@@ -71,13 +76,13 @@ class ISIC2020Dataset(Dataset):
 
 def get_transforms(is_train=True):
     """
-    获取图像变换
+    Get image transformations
     
-    参数:
-        is_train (bool): 是否为训练集变换
+    Parameters:
+        is_train (bool): Whether transformations are for training set
         
-    返回:
-        transforms: torchvision变换
+    Returns:
+        transforms: torchvision transformations
     """
     if is_train:
         return transforms.Compose([
@@ -98,34 +103,35 @@ def get_transforms(is_train=True):
 
 def get_data_loaders():
     """
-    创建训练、验证和测试数据加载器
+    Create train, validation, and test data loaders
     
-    返回:
-        train_loader, val_loader, test_loader: PyTorch数据加载器
+    Returns:
+        train_loader, val_loader, test_loader: PyTorch data loaders
     """
-    # 加载训练数据集
+    # Load training dataset
     train_df = pd.read_csv(config.TRAIN_CSV)
     
-    # 分割训练集和验证集
+    # Split into training and validation sets
     train_df, val_df = train_test_split(
         train_df, test_size=0.2, stratify=train_df['target'], random_state=42
     )
     
-    # 创建数据集
+    # Create datasets - directly pass DataFrames
     train_dataset = ISIC2020Dataset(
-        config.TRAIN_CSV, 
+        train_df,  # Directly pass DataFrame
         config.TRAIN_IMAGES_DIR,
         transform=get_transforms(is_train=True),
         is_test=False
     )
     
     val_dataset = ISIC2020Dataset(
-        config.TRAIN_CSV,
+        val_df,  # Directly pass DataFrame
         config.TRAIN_IMAGES_DIR,
         transform=get_transforms(is_train=False),
         is_test=False
     )
     
+    # Test set still uses CSV file path
     test_dataset = ISIC2020Dataset(
         config.TEST_CSV,
         config.TEST_IMAGES_DIR,
@@ -133,15 +139,7 @@ def get_data_loaders():
         is_test=True
     )
     
-    # 仅使用验证集的索引
-    val_indices = val_df.index.tolist()
-    val_dataset = torch.utils.data.Subset(val_dataset, val_indices)
-    
-    # 仅使用训练集的索引
-    train_indices = train_df.index.tolist()
-    train_dataset = torch.utils.data.Subset(train_dataset, train_indices)
-    
-    # 创建数据加载器
+    # Create data loaders
     train_loader = DataLoader(
         train_dataset, 
         batch_size=config.BATCH_SIZE,

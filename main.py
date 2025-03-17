@@ -14,49 +14,51 @@ from evaluate import evaluate_model, predict
 from visualize import plot_training_history, plot_confusion_matrix, plot_model_comparison
 
 def parse_args():
-    """解析命令行参数"""
-    parser = argparse.ArgumentParser(description='ISIC 2020皮肤病变分类')
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description='ISIC 2020 Skin Lesion Classification')
     
-    # 训练参数
+    # Training parameters
     parser.add_argument('--model', type=str, default=config.MODEL_NAME,
                         choices=ModelFactory.get_model_names(),
-                        help='模型名称')
+                        help='Model name')
     parser.add_argument('--batch_size', type=int, default=config.BATCH_SIZE,
-                        help='批次大小')
+                        help='Batch size')
     parser.add_argument('--epochs', type=int, default=config.NUM_EPOCHS,
-                        help='训练轮数')
+                        help='Number of training epochs')
     parser.add_argument('--lr', type=float, default=config.LEARNING_RATE,
-                        help='学习率')
+                        help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=config.WEIGHT_DECAY,
-                        help='权重衰减')
+                        help='Weight decay')
     parser.add_argument('--image_size', type=int, default=config.IMAGE_SIZE,
-                        help='图像大小')
+                        help='Image size')
     
-    # 模式参数
+    # Mode parameters
     parser.add_argument('--mode', type=str, default='train',
                         choices=['train', 'evaluate', 'predict', 'compare_all'],
-                        help='运行模式')
+                        help='Running mode')
     parser.add_argument('--checkpoint', type=str, default=None,
-                        help='模型检查点路径')
+                        help='Model checkpoint path')
     parser.add_argument('--use_wandb', action='store_true',
-                        help='是否使用wandb')
+                        help='Whether to use wandb')
     
     return parser.parse_args()
 
 def train(args):
-    """训练模型"""
-    # 更新配置
+    """Train model"""
     config.BATCH_SIZE = args.batch_size
     config.IMAGE_SIZE = args.image_size
     config.USE_WANDB = args.use_wandb
     
-    # 获取数据加载器
+    # Get data loaders
     train_loader, val_loader, _ = get_data_loaders()
     
-    # 创建模型
+    # Create model
     model = ModelFactory.create_model(args.model)
+
+    # model = model.to(device) 
+    model = model.to(config.DEVICE)
     
-    # 训练模型
+    # Train model
     model, history = train_model(
         model, 
         train_loader, 
@@ -64,28 +66,29 @@ def train(args):
         num_epochs=args.epochs,
         learning_rate=args.lr,
         weight_decay=args.weight_decay,
+        device=config.DEVICE,
         model_name=args.model,
         use_wandb=args.use_wandb
     )
     
-    # 绘制训练历史
+    # Plot training history
     plot_training_history(history, args.model)
     
     return model, history
 
 def evaluate(args):
-    """评估模型"""
-    # 更新配置
+    """Evaluate model"""
+    # Update configuration
     config.BATCH_SIZE = args.batch_size
     config.IMAGE_SIZE = args.image_size
     
-    # 获取数据加载器
+    # Get data loaders
     _, val_loader, _ = get_data_loaders()
     
-    # 创建模型
+    # Create model
     model = ModelFactory.create_model(args.model)
     
-    # 加载检查点
+    # Load checkpoint
     if args.checkpoint:
         checkpoint_path = args.checkpoint
     else:
@@ -93,91 +96,91 @@ def evaluate(args):
     
     if os.path.exists(checkpoint_path):
         model.load_state_dict(torch.load(checkpoint_path))
-        print(f"已加载检查点: {checkpoint_path}")
+        print(f"Loaded checkpoint: {checkpoint_path}")
     else:
-        print(f"未找到检查点: {checkpoint_path}")
+        print(f"Checkpoint not found: {checkpoint_path}")
         return
     
-    # 评估模型
+    # Evaluate model
     criterion = nn.BCELoss()
     loss, metrics = evaluate_model(model, val_loader, criterion, config.DEVICE)
     
-    # 打印结果
-    print(f"评估结果:")
-    print(f"损失: {loss:.4f}")
-    print(f"准确率: {metrics['accuracy']:.4f}")
-    print(f"精确度: {metrics['precision']:.4f}")
-    print(f"召回率: {metrics['recall']:.4f}")
+    # Print results
+    print(f"Evaluation results:")
+    print(f"Loss: {loss:.4f}")
+    print(f"Accuracy: {metrics['accuracy']:.4f}")
+    print(f"Precision: {metrics['precision']:.4f}")
+    print(f"Recall: {metrics['recall']:.4f}")
     print(f"F1: {metrics['f1']:.4f}")
     
     return metrics
 
 def compare_all_models(args):
-    """比较所有模型"""
-    # 更新配置
+    """Compare all models"""
+    # Update configuration
     config.BATCH_SIZE = args.batch_size
     config.IMAGE_SIZE = args.image_size
     
-    # 获取模型列表
+    # Get model list
     model_names = ModelFactory.get_model_names()
     
-    # 结果字典
+    # Results dictionary
     results = {}
     
     for model_name in model_names:
-        print(f"\n正在评估模型: {model_name}")
+        print(f"\nEvaluating model: {model_name}")
         
-        # 创建模型
+        # Create model
         model = ModelFactory.create_model(model_name)
         
-        # 加载检查点
+        # Load checkpoint
         checkpoint_path = os.path.join(config.CHECKPOINT_DIR, f"{model_name}_best.pth")
         
         if os.path.exists(checkpoint_path):
             model.load_state_dict(torch.load(checkpoint_path))
-            print(f"已加载检查点: {checkpoint_path}")
+            print(f"Loaded checkpoint: {checkpoint_path}")
             
-            # 获取数据加载器
+            # Get data loaders
             _, val_loader, _ = get_data_loaders()
             
-            # 评估模型
+            # Evaluate model
             criterion = nn.BCELoss()
             loss, metrics = evaluate_model(model, val_loader, criterion, config.DEVICE)
             
-            # 存储结果
+            # Store results
             results[model_name] = metrics
             
-            # 打印结果
-            print(f"损失: {loss:.4f}")
-            print(f"准确率: {metrics['accuracy']:.4f}")
-            print(f"精确度: {metrics['precision']:.4f}")
-            print(f"召回率: {metrics['recall']:.4f}")
+            # Print results
+            print(f"Loss: {loss:.4f}")
+            print(f"Accuracy: {metrics['accuracy']:.4f}")
+            print(f"Precision: {metrics['precision']:.4f}")
+            print(f"Recall: {metrics['recall']:.4f}")
             print(f"F1: {metrics['f1']:.4f}")
         else:
-            print(f"未找到检查点: {checkpoint_path}")
+            print(f"Checkpoint not found: {checkpoint_path}")
     
-    # 比较模型
+    # Compare models
     for metric in ['accuracy', 'precision', 'recall', 'f1']:
         plot_model_comparison(results, metric)
     
     return results
 
 def main():
-    """主函数"""
-    # 解析参数
+    """Main function"""
+    # Parse arguments
     args = parse_args()
     
-    # 确保目录存在
+    # Ensure directories exist
     os.makedirs(config.RESULTS_DIR, exist_ok=True)
     os.makedirs(config.CHECKPOINT_DIR, exist_ok=True)
     os.makedirs(config.LOGS_DIR, exist_ok=True)
     
-    # 设置设备
+    # Set device
     device = torch.device(config.DEVICE if torch.cuda.is_available() else 'cpu')
     config.DEVICE = device
-    print(f"使用设备: {device}")
+    print(f"Using device: {device}")
     
-    # 根据模式运行
+    # Run according to mode
     if args.mode == 'train':
         model, history = train(args)
     elif args.mode == 'evaluate':
@@ -185,7 +188,7 @@ def main():
     elif args.mode == 'compare_all':
         results = compare_all_models(args)
     else:
-        print(f"不支持的模式: {args.mode}")
+        print(f"Unsupported mode: {args.mode}")
 
 if __name__ == '__main__':
     main()
